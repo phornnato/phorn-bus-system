@@ -1,0 +1,24 @@
+services:
+  - type: web
+    name: phorn-bus-web
+    env: docker
+    plan: starter       # or professional for paid features/disks
+    repo:https://github.com/phornnato/phorn-bus-system.git
+    branch: main
+    buildCommand: ""   # Dockerfile will handle build; leave empty
+    startCommand: ""   # Dockerfile CMD used; leave empty
+    disk:
+      sizeGB: 10       # attach persistent disk (paid plans required)
+    envVars:
+      - key: APP_ENV
+        value: production
+      - key: APP_DEBUG
+        value: "false"
+      - key: APP_KEY
+        sync: false
+  - type: worker
+    name: phorn-bus-worker
+    env: docker
+    repo:https://github.com/phornnato/phorn-bus-system.git
+    branch: main
+    startCommand: php /app/artisan queue:work --sleep=3 --tries=3
