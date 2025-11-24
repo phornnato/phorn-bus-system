@@ -5,7 +5,8 @@ set -e
 PORT=${PORT:-80}
 
 # Generate nginx config at runtime to avoid unexpanded template issues
-cat > /etc/nginx/conf.d/default.conf <<- 'NGINXCONF'
+# Use an unquoted heredoc so ${PORT} is expanded, but escape nginx $-variables
+cat > /etc/nginx/conf.d/default.conf <<-NGINXCONF
 server {
   listen ${PORT};
   server_name _;
@@ -14,14 +15,14 @@ server {
   index index.php index.html;
 
   location / {
-    try_files $uri $uri/ /index.php?$query_string;
+    try_files \$uri \$uri/ /index.php?\$query_string;
   }
 
   location ~ \.php$ {
     include fastcgi_params;
     fastcgi_pass 127.0.0.1:9000;
     fastcgi_index index.php;
-    fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
+    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
   }
 
   client_max_body_size 100M;
