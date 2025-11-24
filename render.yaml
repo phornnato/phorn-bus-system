@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: laravel-app
+    env: docker
+    plan: free
+    branch: main
+    rootDir: .
+    buildCommand: docker build -t laravel-app .
+    startCommand: docker run -p 10000:10000 laravel-app
