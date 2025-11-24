@@ -4,30 +4,36 @@ set -e
 # Ensure PORT has a default value for nginx listen
 PORT=${PORT:-80}
 
-# Generate nginx config at runtime to avoid unexpanded template issues
-# Use an unquoted heredoc so ${PORT} is expanded, but escape nginx $-variables
-cat > /etc/nginx/conf.d/default.conf <<-NGINXCONF
-server {
-  listen ${PORT};
-  server_name _;
+# Generate nginx config at runtime using envsubst on the template
+# Ensure the template contains ${PORT} and that PORT is exported
+export PORT=${PORT:-80}
+if [ -f /etc/nginx/conf.d/default.conf.template ]; then
+  envsubst '${PORT}' < /etc/nginx/conf.d/default.conf.template > /etc/nginx/conf.d/default.conf
+else
+  echo "Warning: nginx template not found, writing default with port ${PORT}"
+  cat > /etc/nginx/conf.d/default.conf <<-NGINXCONF
+  server {
+    listen ${PORT};
+    server_name _;
 
-  root /var/www/public;
-  index index.php index.html;
+    root /var/www/public;
+    index index.php index.html;
 
-  location / {
-    try_files \$uri \$uri/ /index.php?\$query_string;
+    location / {
+      try_files \$uri \$uri/ /index.php?\$query_string;
+    }
+
+    location ~ \.php$ {
+      include fastcgi_params;
+      fastcgi_pass 127.0.0.1:9000;
+      fastcgi_index index.php;
+      fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
+    }
+
+    client_max_body_size 100M;
   }
-
-  location ~ \.php$ {
-    include fastcgi_params;
-    fastcgi_pass 127.0.0.1:9000;
-    fastcgi_index index.php;
-    fastcgi_param SCRIPT_FILENAME \$document_root\$fastcgi_script_name;
-  }
-
-  client_max_body_size 100M;
-}
 NGINXCONF
+fi
 
 # Export PORT for child processes just in case
 export PORT
