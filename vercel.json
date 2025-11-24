@@ -1,0 +1,42 @@
+{
+    "version": 2,
+    "framework": null,
+    "functions": {
+      "api/index.php": { "runtime": "vercel-php@0.6.0" }
+    },
+    "routes": [
+      {
+        "src": "/assets/(.*)",
+        "headers": { "cache-control": "public, max-age=31536000, immutable" },
+        "dest": "/public/assets/$1"
+      },
+      {
+        "src": "/styles/(.*)",
+        "headers": { "cache-control": "public, max-age=31536000, immutable" },
+        "dest": "/public/styles/$1"
+      },
+      {
+        "src": "/styles/font/(.*)",
+        "headers": { "cache-control": "public, max-age=31536000, immutable" },
+        "dest": "/public/styles/font/$1"
+      },
+      {
+        "src": "/(.*)",
+        "dest": "/api/index.php"
+      }
+    ],
+    "env": {
+      "APP_ENV": "production",
+      "APP_DEBUG": "false",
+      "APP_URL": "https://phorn.website",
+      "APP_CONFIG_CACHE": "/tmp/config.php",
+      "APP_EVENTS_CACHE": "/tmp/events.php",
+      "APP_PACKAGES_CACHE": "/tmp/packages.php",
+      "APP_ROUTES_CACHE": "/tmp/routes.php",
+      "APP_SERVICES_CACHE": "/tmp/services.php",
+      "VIEW_COMPILED_PATH": "/tmp",
+      "CACHE_DRIVER": "array",
+      "LOG_CHANNEL": "stderr",
+      "SESSION_DRIVER": "cookie"
+    }
+  }
