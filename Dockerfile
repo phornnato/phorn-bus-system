@@ -1,25 +1,37 @@
 FROM php:8.2-fpm
 
-# Install system dependencies
+WORKDIR /var/www/html
+
 RUN apt-get update && apt-get install -y \
-    git curl unzip libpq-dev libonig-dev libzip-dev zip \
-    && docker-php-ext-install pdo pdo_mysql mbstring zip
+    build-essential \
+    libpng-dev \
+    libjpeg-dev \
+    libonig-dev \
+    libxml2-dev \
+    zip \
+    unzip \
+    curl \
+    git \
+    vim \
+    libzip-dev \
+    sqlite3 \
+    libsqlite3-dev
 
-# Install Composer
-COPY --from=composer:2 /usr/bin/composer /usr/bin/composer
+RUN docker-php-ext-install pdo pdo_mysql mbstring exif pcntl bcmath gd zip
 
-WORKDIR /var/www
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# Copy app files
-COPY . .
+COPY . /var/www/html
+COPY --chown=www-data:www-data . /var/www/html
+RUN chmod -R 755 /var/www/html
 
-# Install PHP dependencies
-RUN composer install --no-dev --optimize-autoloader
+RUN cp .env.example .env
 
-# Laravel setup
-RUN php artisan config:clear && \
-    php artisan route:clear && \
-    php artisan view:clear
+RUN composer install && php artisan key:generate
 
-CMD ["php-fpm"]
+# Create data directory and empty sqlite file
+RUN mkdir -p /var/www/html/database \
+    && touch /var/www/html/database/database.sqlite
 
+EXPOSE 8000
+CMD php artisan serve --host=0.0.0.0 --port=8000
