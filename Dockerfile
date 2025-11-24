@@ -16,14 +16,11 @@ COPY . .
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader
 
-# Laravel setup
-RUN php artisan config:clear && \
-    php artisan route:clear && \
-    php artisan view:clear
+# Copy entrypoint
+COPY docker-entrypoint.sh /entrypoint.sh
+RUN chmod +x /entrypoint.sh
 
-RUN php artisan key:generate
-# Expose port 9000 and start php-fpm server
 EXPOSE 9000
+
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["php-fpm"]
-
-
